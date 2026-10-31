@@ -4,7 +4,6 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
-const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const https = require("https");
@@ -35,42 +34,67 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(publicDir));
 
 // ==========================================
-// SQLITE DATABASE INITIALIZATION
+// SQLITE DATABASE INITIALIZATION & ADAPTER
 // ==========================================
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error("❌ Failed to connect to SQLite database.db:", err.message);
-  } else {
-    console.log("💾 [SQLite] Connected successfully to database.db");
-  }
-});
+let dbRun, dbAll, dbGet;
 
-// Helper functions for Promisified SQLite queries
-function dbRun(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve(this);
-    });
+try {
+  const sqlite3 = require("sqlite3").verbose();
+  const db = new sqlite3.Database(DB_PATH, (err) => {
+    if (err) {
+      console.error("❌ Failed to connect to SQLite database.db:", err.message);
+    } else {
+      console.log("💾 [SQLite] Connected successfully to database.db");
+    }
   });
-}
 
-function dbAll(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows || []);
+  dbRun = function (sql, params = []) {
+    return new Promise((resolve, reject) => {
+      db.run(sql, params, function (err) {
+        if (err) reject(err);
+        else resolve(this);
+      });
     });
-  });
-}
+  };
 
-function dbGet(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row || null);
+  dbAll = function (sql, params = []) {
+    return new Promise((resolve, reject) => {
+      db.all(sql, params, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
     });
-  });
+  };
+
+  dbGet = function (sql, params = []) {
+    return new Promise((resolve, reject) => {
+      db.get(sql, params, (err, row) => {
+        if (err) reject(err);
+        else resolve(row || null);
+      });
+    });
+  };
+} catch (nativeErr) {
+  console.warn("⚠️ Native sqlite3 binding unavailable, activating Node.js built-in node:sqlite fallback:", nativeErr.message);
+  const { DatabaseSync } = require("node:sqlite");
+  const db = new DatabaseSync(DB_PATH);
+  console.log("💾 [node:sqlite] Connected successfully to database.db via built-in engine!");
+
+  dbRun = async function (sql, params = []) {
+    const stmt = db.prepare(sql);
+    const result = stmt.run(...params);
+    return { lastID: result.lastInsertRowid, changes: result.changes };
+  };
+
+  dbAll = async function (sql, params = []) {
+    const stmt = db.prepare(sql);
+    return stmt.all(...params);
+  };
+
+  dbGet = async function (sql, params = []) {
+    const stmt = db.prepare(sql);
+    return stmt.get(...params) || null;
+  };
 }
 
 // Initialize tables and seed defaults
