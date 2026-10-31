@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyTune - Audio-Reactive Modern Music Player</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Dynamic Ambient Audio-Reactive Background -->
+  <div id="dynamic-ambient-bg" class="ambient-background"></div>
+  <canvas id="visualizer-canvas" class="visualizer-overlay"></canvas>
+
+  <div class="app-container">
+
+    <!-- Header & Navigation -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <span class="brand-title">MYTUNE<span class="accent-text"> MUSIC</span></span>
+      </div>
+
+      <!-- Search Bar (Searches Title, Artist, Actor, Movie, etc.) -->
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search by song, artist, actor, movie, or section..."
+          autocomplete="off"
+        >
+        <button id="clear-search-btn" class="clear-search-btn" style="display: none;" title="Clear search">&times;</button>
+      </div>
+
+      <!-- User Controls & Admin Actions -->
+      <div class="header-actions">
+        <button id="admin-dashboard-btn" class="btn btn-secondary" style="display: none;">
+          <span>📊 Admin Dashboard</span>
+        </button>
+
+        <button id="admin-upload-btn" class="btn btn-primary" style="display: none;">
+          <span>+ Upload Song</span>
+        </button>
+
+        <div class="user-badge" id="user-badge">
+          <span id="user-role-text">👤 Guest (3 Free Plays)</span>
+        </div>
+
+        <button id="auth-btn" class="btn btn-secondary">
+          Login / Register
+        </button>
+      </div>
+    </header>
+
+    <!-- Five Music Sections Navigation: All, Hollywood, Bollywood, Tollywood, Bhojpuri + Liked -->
+    <nav class="categories-nav">
+      <button class="nav-tab active" data-category="all">
+        <span class="tab-emoji">🌐</span> All Music
+      </button>
+      <button class="nav-tab" data-category="hollywood">
+        <span class="tab-emoji">🎬</span> Hollywood
+      </button>
+      <button class="nav-tab" data-category="bollywood">
+        <span class="tab-emoji">✨</span> Bollywood
+      </button>
+      <button class="nav-tab" data-category="tollywood">
+        <span class="tab-emoji">🔥</span> Tollywood
+      </button>
+      <button class="nav-tab" data-category="bhojpuri">
+        <span class="tab-emoji">🥁</span> Bhojpuri
+      </button>
+      <button class="nav-tab" data-category="favorites">
+        <span class="tab-emoji">♥</span> Liked Songs
+      </button>
+      <button class="nav-tab playlist-tab" data-category="playlist-emraan" title="Playlist: Emraan Hashmi Romantic Hits">
+        <span class="tab-emoji">🌹</span> Emraan Hashmi Hits
+      </button>
+      <button class="nav-tab playlist-tab" data-category="playlist-tseries" title="Playlist: Ultimate Bollywood Moody Mix">
+        <span class="tab-emoji">🎧</span> T-Series Moody Mix
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="section-header">
+        <div class="section-text-group">
+          <h2 id="current-section-title">All Music Tracks</h2>
+          <p id="current-section-subtitle">Explore top songs across Hollywood, Bollywood, Tollywood & Bhojpuri</p>
+        </div>
+      </div>
+
+      <!-- Songs Cards Grid -->
+      <div id="songs-grid" class="songs-grid">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+    </main>
+
+    <!-- Bottom Audio Player Dock -->
+    <footer class="player-bar">
+      <!-- Left Track Info -->
+      <div class="player-track-info">
+        <img id="player-cover" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300" alt="Track Cover" class="player-cover">
+        <div class="player-text">
+          <h4 id="player-title">Select a track to play</h4>
+          <p id="player-artist">Ready to stream</p>
+          <span id="player-movie-actor" class="player-submeta"></span>
+        </div>
+        <button id="favorite-player-btn" class="control-btn icon-fav" title="Save to favorites">♡</button>
+      </div>
+
+      <!-- Center Player Controls & Progress -->
+      <div class="player-center">
+        <div class="player-controls">
+          <button id="shuffle-btn" class="control-btn" title="Toggle Shuffle">🔀</button>
+          <button id="prev-btn" class="control-btn" title="Previous Track">⏮</button>
+          <button id="play-pause-btn" class="control-btn play-circle-btn" title="Play / Pause">▶</button>
+          <button id="next-btn" class="control-btn" title="Next Track">⏭</button>
+          <button id="repeat-btn" class="control-btn" title="Toggle Repeat">🔁</button>
+        </div>
+
+        <div class="progress-area">
+          <span id="current-time" class="time-label">0:00</span>
+          <div id="progress-container" class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+          <span id="duration-time" class="time-label">0:00</span>
+        </div>
+      </div>
+
+      <!-- Right Utility Controls -->
+      <div class="player-right">
+        <button id="download-btn" class="btn btn-secondary download-btn" title="Download Current Song as MP3">
+          📥 Download MP3
+        </button>
+
+        <div class="volume-control">
+          <button id="mute-btn" class="control-btn" title="Mute/Unmute">🔊</button>
+          <input type="range" id="volume-slider" min="0" max="100" value="80" class="volume-slider">
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Auth Modal (Guest / User / Admin) -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <h3 id="auth-title">Welcome to MyTune</h3>
+        <p>Login to unlock unlimited listening, Liked Songs, and playlists!</p>
+      </div>
+      <form id="auth-form" class="auth-form">
+        <div class="form-group" id="auth-name-group" style="display: none;">
+          <label for="auth-name">Your Full Name</label>
+          <input type="text" id="auth-name" placeholder="e.g. Alex Sharma">
+        </div>
+        <div class="form-group">
+          <label for="auth-username">Username</label>
+          <input type="text" id="auth-username" required placeholder="Enter your username">
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" required placeholder="Enter your password">
+        </div>
+        <div class="form-group" id="auth-role-group" style="display: none;">
+          <label for="auth-role-select">Account Role</label>
+          <select id="auth-role-select">
+            <option value="user">Regular Listener (Unlimited songs & favorites)</option>
+            <option value="admin">Admin (Upload, edit, delete & manage database)</option>
+          </select>
+        </div>
+        <button type="submit" id="auth-submit-btn" class="btn btn-primary btn-block">Login</button>
+        <div class="auth-toggle">
+          <a href="#" id="auth-toggle-link">Don't have an account? Sign up</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upload Song Modal (Admin) -->
+  <div id="upload-modal" class="modal-overlay">
+    <div class="modal-box modal-wide">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <h3>Upload New Track</h3>
+        <p>Publish a song to Hollywood, Bollywood, Tollywood or Bhojpuri catalog in database.db</p>
+      </div>
+      <form id="upload-form" class="upload-form" enctype="multipart/form-data">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="song-title-input">Song Title *</label>
+            <input type="text" id="song-title-input" required placeholder="e.g. Kesariya or Blinding Lights">
+          </div>
+          <div class="form-group">
+            <label for="song-artist-input">Artist / Singer *</label>
+            <input type="text" id="song-artist-input" required placeholder="e.g. Arijit Singh / The Weeknd">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="song-movie-input">Movie / Album</label>
+            <input type="text" id="song-movie-input" placeholder="e.g. Brahmāstra / Starboy">
+          </div>
+          <div class="form-group">
+            <label for="song-actor-input">Featured Actor / Star Cast</label>
+            <input type="text" id="song-actor-input" placeholder="e.g. Ranbir Kapoor, Alia Bhatt">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="song-category-input">Music Section *</label>
+            <select id="song-category-input" required>
+              <option value="hollywood">Hollywood</option>
+              <option value="bollywood">Bollywood</option>
+              <option value="tollywood">Tollywood</option>
+              <option value="bhojpuri">Bhojpuri</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cover-file-input">Album Art File (.jpg, .png)</label>
+            <input type="file" id="cover-file-input" accept="image/*">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="song-cover-input">Or Paste Poster Image URL</label>
+          <input type="url" id="song-cover-input" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div class="form-group">
+          <label for="song-file-input">Select Audio File to Upload (.mp3, .wav, .ogg)</label>
+          <input type="file" id="song-file-input" accept="audio/*">
+        </div>
+
+        <div class="form-group">
+          <label for="song-url-input">Or Direct Audio Stream URL (.mp3)</label>
+          <input type="url" id="song-url-input" placeholder="https://example.com/audio.mp3">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Publish Track to Database</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Edit Song Details Modal -->
+  <div id="edit-modal" class="modal-overlay">
+    <div class="modal-box modal-wide">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <h3>✏️ Edit Song Details (Admin Mode)</h3>
+        <p>Modify track title, singer, film, genre category, artwork or audio file in database.db</p>
+      </div>
+      <form id="edit-form" class="upload-form" enctype="multipart/form-data">
+        <input type="hidden" id="edit-song-id">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-song-title">Song Title *</label>
+            <input type="text" id="edit-song-title" required placeholder="e.g. Tum Hi Ho">
+          </div>
+          <div class="form-group">
+            <label for="edit-song-artist">Artist / Singer *</label>
+            <input type="text" id="edit-song-artist" required placeholder="e.g. Arijit Singh">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-song-movie">Movie / Album</label>
+            <input type="text" id="edit-song-movie" placeholder="e.g. Aashiqui 2">
+          </div>
+          <div class="form-group">
+            <label for="edit-song-actor">Featured Actor / Cast</label>
+            <input type="text" id="edit-song-actor" placeholder="e.g. Aditya Roy Kapur">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-song-category">Music Section *</label>
+            <select id="edit-song-category" required>
+              <option value="hollywood">Hollywood</option>
+              <option value="bollywood">Bollywood</option>
+              <option value="tollywood">Tollywood</option>
+              <option value="bhojpuri">Bhojpuri</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-song-duration">Duration (mm:ss)</label>
+            <input type="text" id="edit-song-duration" placeholder="e.g. 5:02">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-song-cover">Cover / Poster Image URL</label>
+          <input type="text" id="edit-song-cover" placeholder="https://images.unsplash.com/... or paste image link">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-cover-file">Or Replace Cover Image (.jpg, .png)</label>
+          <input type="file" id="edit-cover-file" accept="image/*">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-song-url">Audio Stream URL <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: normal;">(Leave unchanged to keep existing audio)</span></label>
+          <input type="text" id="edit-song-url" placeholder="Keep unchanged or paste new audio stream URL">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-audio-file">Or Replace Audio File (.mp3, .wav) <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: normal;">(Optional — leave empty to keep existing audio)</span></label>
+          <input type="file" id="edit-audio-file" accept="audio/*">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Save Changes to Database</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Modal (Users & Songs Information) -->
+  <div id="admin-dashboard-modal" class="modal-overlay">
+    <div class="modal-box modal-wide" style="max-width: 850px;">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <h3>🛡️ Admin Control & Database Overview</h3>
+        <p>Live statistics and user management from database.db</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+          <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent);" id="admin-total-users">-</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Registered Users</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+          <div style="font-size: 1.8rem; font-weight: 800; color: #10b981;" id="admin-total-songs">-</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Total Songs</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+          <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary);" id="admin-cat-breakdown">Loading...</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Category Breakdown</div>
+        </div>
+      </div>
+
+      <!-- Registered Users Table -->
+      <h4 style="margin-bottom: 0.75rem; color: var(--text-primary); font-size: 1.05rem;">👥 Registered Users List</h4>
+      <div style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.25); border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 1.5rem;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); background: rgba(255,255,255,0.03);">
+              <th style="padding: 10px 14px;">ID</th>
+              <th style="padding: 10px 14px;">Username</th>
+              <th style="padding: 10px 14px;">Name</th>
+              <th style="padding: 10px 14px;">Role</th>
+              <th style="padding: 10px 14px;">Joined</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-table-body">
+            <!-- Populated via app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="admin-modal-upload-btn" class="btn btn-primary">+ Upload New Song</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guest Limit Modal -->
+  <div id="guest-limit-modal" class="modal-overlay">
+    <div class="modal-box text-center">
+      <div class="modal-limit-icon">🎧</div>
+      <h3>Guest Preview Limit Reached</h3>
+      <p id="guest-limit-desc">You've reached your free 3-song preview limit as a guest listener. Create a free account or login to continue streaming unlimited music, saving favorites, and downloading tracks!</p>
+      <div class="modal-cta-buttons">
+        <button id="guest-login-redirect-btn" class="btn btn-primary btn-block">
+          Login / Create Free Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/visualizer.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
