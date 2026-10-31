@@ -2,8 +2,8 @@
 
 class MusicAPI {
   constructor() {
-    const isLiveServer = window.location.port !== "5000";
-    this.baseUrl = isLiveServer ? "http://localhost:5000/api" : "/api";
+    const isSeparateLiveServer = window.location.hostname === "localhost" && window.location.port !== "5000" && window.location.port !== "";
+    this.baseUrl = isSeparateLiveServer ? "http://localhost:5000/api" : "/api";
     this.tokenKey = "mytune_jwt_token_v1";
     this.cachedUserKey = "mytune_cached_user_v1";
     this.guestCountKey = "mytune_guest_song_count_v1";
@@ -301,8 +301,8 @@ class MusicAPI {
   }
 
   getDownloadUrl(song) {
-    const isLiveServer = window.location.port !== "5000";
-    const host = isLiveServer ? "http://localhost:5000" : "";
+    const isSeparateLiveServer = window.location.hostname === "localhost" && window.location.port !== "5000" && window.location.port !== "";
+    const host = isSeparateLiveServer ? "http://localhost:5000" : "";
     const params = new URLSearchParams({
       id: song.id || song._id || "",
       url: song.url || "",

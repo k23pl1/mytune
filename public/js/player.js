@@ -78,13 +78,13 @@ class MusicPlayer {
 
     // Resolve URL (relative /uploads or external stream)
     let finalUrl = song.url;
-    const isLiveServer = window.location.port !== "5000";
-    const host = isLiveServer ? "http://localhost:5000" : "";
+    const isSeparateLiveServer = window.location.hostname === "localhost" && window.location.port !== "5000" && window.location.port !== "";
+    const host = isSeparateLiveServer ? "http://localhost:5000" : "";
 
-    if (song.isLocalFile && song.url.startsWith("/")) {
+    if (song.url.startsWith("/")) {
       finalUrl = `${host}${song.url}`;
-    } else if (song.url.startsWith("http") && !song.url.includes("localhost:5000")) {
-      // Proxy external audio through local server to ensure CORS & range request support
+    } else if (song.url.startsWith("http") && !song.url.includes(window.location.host)) {
+      // Proxy external audio through server to ensure CORS & range request support
       finalUrl = `${host}/api/songs/stream?url=${encodeURIComponent(song.url)}`;
     }
 

@@ -220,8 +220,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Handle cover path
       let coverSrc = song.cover;
       if (song.cover && song.cover.startsWith("/")) {
-        const isLiveServer = window.location.port !== "5000";
-        const host = isLiveServer ? "http://localhost:5000" : "";
+        const isSeparateLiveServer = window.location.hostname === "localhost" && window.location.port !== "5000" && window.location.port !== "";
+        const host = isSeparateLiveServer ? "http://localhost:5000" : "";
         coverSrc = `${host}${song.cover}`;
       }
 
@@ -660,8 +660,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const song = e.detail.song;
     let coverSrc = song.cover;
     if (song.cover && song.cover.startsWith("/")) {
-      const isLiveServer = window.location.port !== "5000";
-      const host = isLiveServer ? "http://localhost:5000" : "";
+      const isSeparateLiveServer = window.location.hostname === "localhost" && window.location.port !== "5000" && window.location.port !== "";
+      const host = isSeparateLiveServer ? "http://localhost:5000" : "";
       coverSrc = `${host}${song.cover}`;
     }
 
